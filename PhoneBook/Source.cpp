@@ -9,6 +9,10 @@ using std::ifstream;
 using std::ofstream;
 using std::ios;
 
+const int NUMBER_OF_RECORDS = 1000;
+const int BUFFER_SIZE = 15;
+const int NAME_LENGTH = 35;
+
 void DisplayMenu(int& menuSelection);
 void ProcessMenu(int& menuSelection, bool& valid);
 void GetData(char aName[][NAME_LENGTH], int& bufferIndex);
@@ -16,23 +20,45 @@ void GetData(char aName[][NAME_LENGTH],
 			int aPhoneNumber[],
 			int aBirthDate[], int& bufferIndex);
 
-int LoadDataBase(char recordOfName[][NAME_LENGTH], int recordOfPhoneNumbers[], int recordOfBirthDates[], int& numberOfRecords);
+int LoadDataBase(char recordOfName[][NAME_LENGTH],
+			int recordOfPhoneNumbers[], int recordOfBirthDates[],
+			int& numberOfRecords);
 
-const int NUMBER_OF_RECORDS = 1000;
-const int BUFFER_SIZE = 15;
-const int NAME_LENGTH = 35;
+bool Tests(int & PassFailToken);
+
 
 
 int main()
 {
-	int menuSelection = 0;
-	bool valid = true;
+	int menuSelection = 0; //Holds selction from the menu
 
-	do
+	bool valid = true; //Keeps program running
+
+	int PassFailToken = 1; // if >0 success or <0 fail or =0 unkown fatel error
+
+	int numberOfRecords = 0; // Holds the number of records pulled from DB at time of Load
+
+	int bufferIndex = 0; //Holds the number of records stored in the buffer
+
+	//Will contain all the records from the database when loaded
+	char recordOfName[NUMBER_OF_RECORDS][NAME_LENGTH];
+	int recordOfPhoneNumbers[NUMBER_OF_RECORDS];
+	int recordOfBirthDates[NUMBER_OF_RECORDS];
+	
+	//buffer of records
+	char aName[BUFFER_SIZE][NAME_LENGTH];
+	int aPhoneNumber[BUFFER_SIZE];
+	int aBirthDate[BUFFER_SIZE];
+
+	//Opens DB and scrapes all data
+	PassFailToken = LoadDataBase( recordOfName, recordOfPhoneNumbers, recordOfBirthDates, numberOfRecords);
+	valid = Tests(PassFailToken);
+
+	while(valid)
 	{
 		DisplayMenu(menuSelection);
 		ProcessMenu(menuSelection, valid);
-	} while (valid);
+	}
 
 
 	return 0;
@@ -64,6 +90,7 @@ void DisplayMenu(int& menuSelection)
 
 void ProcessMenu(int& menuSelection, bool& valid)
 {
+	/*      Zombie code
 	//Will contain all the records from the database when loaded
 	char recordOfName[NUMBER_OF_RECORDS][NAME_LENGTH];
 	int recordOfPhoneNumbers[NUMBER_OF_RECORDS];
@@ -73,7 +100,7 @@ void ProcessMenu(int& menuSelection, bool& valid)
 	char aName[BUFFER_SIZE][NAME_LENGTH];
 	int aPhoneNumber[BUFFER_SIZE];
 	int aBirthDate[BUFFER_SIZE];
-	int bufferIndex = 0;
+	int bufferIndex = 0;*/
 
 
 	switch (menuSelection)
@@ -84,6 +111,7 @@ void ProcessMenu(int& menuSelection, bool& valid)
 	case 4:
 	case 5:
 		valid = false;
+		break;
 	default:
 		cout << "\nUnkown Error has occured.\n";
 		system("pause");
@@ -117,19 +145,50 @@ int LoadDataBase(char recordOfName[][NAME_LENGTH],
 	int recordOfPhoneNumbers[],
 	int recordOfBirthDates[], int& numberOfRecords)
 {
-	int records = 0;
+	int PassFailToken = 0;
 	ifstream readPhoneBook("PhoneBook.txt", ios::app);
 
 	if (readPhoneBook.is_open())
 	{
-		readPhoneBook >> recordOfName[records]
-		 >> recordOfPhoneNumbers[records]
-		 >> recordOfBirthDates[records];
+		PassFailToken = 1;
+
+		readPhoneBook >> recordOfName[numberOfRecords]
+		 >> recordOfPhoneNumbers[numberOfRecords]
+		 >> recordOfBirthDates[numberOfRecords];
 
 		while (!readPhoneBook.eof())
 		{
+			readPhoneBook >> recordOfName[numberOfRecords]
+				>> recordOfPhoneNumbers[numberOfRecords]
+				>> recordOfBirthDates[numberOfRecords];
 		}
-
 		readPhoneBook.close();
 	}
+	else if (readPhoneBook.fail())
+	{
+		PassFailToken = -1;
+	}
+
+	return PassFailToken;
+}
+
+
+bool Tests(int & PassFailToken)
+{
+	bool valid = true;
+	if (PassFailToken > 0)
+	{
+		valid = true;
+	}
+	else if (PassFailToken < 0)
+	{
+		cout << "Failed";
+		valid = false;
+	}
+	else if (PassFailToken == 0)
+	{
+		cout << "An unkown fatel error hased occured...";
+		valid = false;
+	}
+	return valid;
 }
