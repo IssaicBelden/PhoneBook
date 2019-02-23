@@ -14,18 +14,19 @@ const int BUFFER_SIZE = 15;
 const int NAME_LENGTH = 35;
 
 void DisplayMenu(int& menuSelection);
-void ProcessMenu(int& menuSelection, bool& valid);
+void ProcessMenu(int& menuSelection, bool& valid,
+	char aName[][NAME_LENGTH],int aPhoneNumbe[], 
+	int aBirthDate[], int& bufferIndex);
 void GetData(char aName[][NAME_LENGTH], int& bufferIndex);
-void GetData(char aName[][NAME_LENGTH],
-			int aPhoneNumber[],
-			int aBirthDate[], int& bufferIndex);
+void GetData(char aName[][NAME_LENGTH],		
+	int aPhoneNumber[],
+	int aBirthDate[], int& bufferIndex);
 
 int LoadDataBase(char recordOfName[][NAME_LENGTH],
-			int recordOfPhoneNumbers[], int recordOfBirthDates[],
-			int& numberOfRecords);
+	int recordOfPhoneNumbers[], int recordOfBirthDates[],
+	int& numberOfRecords);
 
 bool Tests(int & PassFailToken);
-
 
 
 int main()
@@ -57,7 +58,7 @@ int main()
 	while(valid)
 	{
 		DisplayMenu(menuSelection);
-		ProcessMenu(menuSelection, valid);
+		ProcessMenu(menuSelection, valid, aName, aPhoneNumber, aBirthDate, bufferIndex);
 	}
 
 
@@ -69,6 +70,7 @@ void DisplayMenu(int& menuSelection)
 	bool valid = false;
 	do
 	{
+		system("cls");
 		cout << "\t Please enter the number for the menu item you would like to select.";
 		cout << "\n1......................................................Find Record.\n";
 		cout << "2.......................................................Add Record.\n";
@@ -84,11 +86,14 @@ void DisplayMenu(int& menuSelection)
 			valid = true;
 			system("pause");
 		}
+		else valid = false;
 
 	} while (valid);
 }
 
-void ProcessMenu(int& menuSelection, bool& valid)
+void ProcessMenu(int& menuSelection, bool& valid,
+	char aName[][NAME_LENGTH], int aPhoneNumbe[],
+	int aBirthDate[], int & bufferIndex)
 {
 	/*      Zombie code
 	//Will contain all the records from the database when loaded
@@ -106,9 +111,13 @@ void ProcessMenu(int& menuSelection, bool& valid)
 	switch (menuSelection)
 	{
 	case 1:
+		break;
 	case 2:
+		break;
 	case 3:
+		break;
 	case 4:
+		break;
 	case 5:
 		valid = false;
 		break;
