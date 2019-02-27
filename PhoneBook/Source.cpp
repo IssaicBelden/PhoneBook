@@ -1,66 +1,62 @@
 #include <iostream>
 #include <fstream>
-#include <string>
 
-using std::getline;
 using std::cin;
 using std::cout;
+using std::endl;
+using std::fstream;
 using std::ifstream;
 using std::ofstream;
-using std::ios;
 
+//Global Variables
 const int NUMBER_OF_RECORDS = 1000;
-const int BUFFER_SIZE = 15;
 const int NAME_LENGTH = 35;
+const char FILENAME[] = "PhoneBook.txt";
 
+//Function prototype
 void DisplayMenu(int& menuSelection);
-void ProcessMenu(int& menuSelection, bool& valid,
-	char aName[][NAME_LENGTH],int aPhoneNumbe[], 
-	int aBirthDate[], int& bufferIndex);
-void GetData(char aName[][NAME_LENGTH], int& bufferIndex);
-void GetData(char aName[][NAME_LENGTH],		
-	int aPhoneNumber[],
-	int aBirthDate[], int& bufferIndex);
 
-int LoadDataBase(char recordOfName[][NAME_LENGTH],
-	int recordOfPhoneNumbers[], int recordOfBirthDates[],
-	int& numberOfRecords);
+void ProcessMenu(int& menuSelection, bool & valid, char recordOfNames[][NAME_LENGTH],
+	int recordOfPhoneNumbers[], int recordOfBirthDates[], int & numberOfRecords);
 
-bool Tests(int & PassFailToken);
+int GetDataBase(char recordOfNames[][NAME_LENGTH], int recordOfPhoneNumbers[],
+	int recordOfBirthDates[], int & numberOfRecords);
 
+void PostDataBase(char recordOfNames[][NAME_LENGTH], int recordOfPhoneNumbers[], 
+	int recordOfBirthDates[], int & numberOfRecords);
 
+int Search(char recordOfNames[][NAME_LENGTH], int & numberOfRecords);
+
+void AddRecord(char recordOfNames[][NAME_LENGTH], int recordOfPhoneNumbers[], 
+	int recordOfBirthDates[], int & numberOfRecords);
+
+void DisplayDB(char recordOfNames[][NAME_LENGTH], int recordOfPhoneNumbers[], 
+	int recordOfBirthDates[], int & numberOfRecords);
+
+//Functions
 int main()
 {
 	int menuSelection = 0; //Holds selction from the menu
-
 	bool valid = true; //Keeps program running
-
 	int PassFailToken = 1; // if >0 success or <0 fail or =0 unkown fatel error
-
 	int numberOfRecords = 0; // Holds the number of records pulled from DB at time of Load
 
-	int bufferIndex = 0; //Holds the number of records stored in the buffer
-
 	//Will contain all the records from the database when loaded
-	char recordOfName[NUMBER_OF_RECORDS][NAME_LENGTH];
-	int recordOfPhoneNumbers[NUMBER_OF_RECORDS];
-	int recordOfBirthDates[NUMBER_OF_RECORDS];
-	
-	//buffer of records
-	char aName[BUFFER_SIZE][NAME_LENGTH];
-	int aPhoneNumber[BUFFER_SIZE];
-	int aBirthDate[BUFFER_SIZE];
+	char recordOfNames[NUMBER_OF_RECORDS][NAME_LENGTH];
+	int recordOfPhoneNumbers[NUMBER_OF_RECORDS] = { 0 };
+	int recordOfBirthDates[NUMBER_OF_RECORDS] = { 0 };
 
 	//Opens DB and scrapes all data
-	PassFailToken = LoadDataBase( recordOfName, recordOfPhoneNumbers, recordOfBirthDates, numberOfRecords);
-	valid = Tests(PassFailToken);
+	valid = GetDataBase(recordOfNames, recordOfPhoneNumbers, recordOfBirthDates, numberOfRecords);
 
 	while(valid)
 	{
 		DisplayMenu(menuSelection);
-		ProcessMenu(menuSelection, valid, aName, aPhoneNumber, aBirthDate, bufferIndex);
+		ProcessMenu(menuSelection, valid, recordOfNames, recordOfPhoneNumbers, recordOfBirthDates, numberOfRecords);
 	}
 
+	//Opens Db and rewrites all the data
+	PostDataBase(recordOfNames, recordOfPhoneNumbers, recordOfBirthDates, numberOfRecords);
 
 	return 0;
 }
@@ -91,32 +87,25 @@ void DisplayMenu(int& menuSelection)
 	} while (valid);
 }
 
-void ProcessMenu(int& menuSelection, bool& valid,
-	char aName[][NAME_LENGTH], int aPhoneNumbe[],
-	int aBirthDate[], int & bufferIndex)
+void ProcessMenu(int& menuSelection, bool & valid, char recordOfNames[][NAME_LENGTH],
+	int recordOfPhoneNumbers[], int recordOfBirthDates[], int & numberOfRecords)
 {
-	/*      Zombie code
-	//Will contain all the records from the database when loaded
-	char recordOfName[NUMBER_OF_RECORDS][NAME_LENGTH];
-	int recordOfPhoneNumbers[NUMBER_OF_RECORDS];
-	int recordOfBirthDates[NUMBER_OF_RECORDS];
-	int numberOfRecords = 0;
-	//buffer of records
-	char aName[BUFFER_SIZE][NAME_LENGTH];
-	int aPhoneNumber[BUFFER_SIZE];
-	int aBirthDate[BUFFER_SIZE];
-	int bufferIndex = 0;*/
-
+	int index = 0;
 
 	switch (menuSelection)
 	{
 	case 1:
+		index = Search(recordOfNames, numberOfRecords);
+		system("pause");
 		break;
 	case 2:
+		AddRecord(recordOfNames, recordOfPhoneNumbers, recordOfBirthDates, numberOfRecords);
 		break;
 	case 3:
 		break;
 	case 4:
+		DisplayDB(recordOfNames, recordOfPhoneNumbers, recordOfBirthDates, numberOfRecords);
+		system("pause");
 		break;
 	case 5:
 		valid = false;
@@ -128,76 +117,126 @@ void ProcessMenu(int& menuSelection, bool& valid,
 	}
 }
 
-void GetData(char aName[][NAME_LENGTH], int& bufferIndex)
+int GetDataBase(char recordOfNames[][NAME_LENGTH], int recordOfPhoneNumbers[],
+	int recordOfBirthDates[], int & numberOfRecords)
 {
-	cout << "\nEnter your full name: ";
-	cin.getline(aName[bufferIndex], NAME_LENGTH);
-	bufferIndex++;
-}
+	bool valid = false;
+	ifstream ReadDB;
+	ReadDB.open(FILENAME);
 
-void GetData(char aName[][NAME_LENGTH],
-	int aPhoneNumber[], int aBirthDate[], int& bufferIndex)
-{
-	cout << "\nEnter your full name: ";
-	cin.getline(aName[bufferIndex], NAME_LENGTH);
-
-	cout << "\nEnter your phone number with only numbers: ";
-	cin >> aPhoneNumber[bufferIndex];
-
-	cout << "\nEnter your birth date with only numbers: ";
-	cin >> aBirthDate[bufferIndex];
-
-	bufferIndex++;
-}
-
-int LoadDataBase(char recordOfName[][NAME_LENGTH],
-	int recordOfPhoneNumbers[],
-	int recordOfBirthDates[], int& numberOfRecords)
-{
-	int PassFailToken = 0;
-	ifstream readPhoneBook("PhoneBook.txt", ios::app);
-
-	if (readPhoneBook.is_open())
-	{
-		PassFailToken = 1;
-
-		readPhoneBook >> recordOfName[numberOfRecords]
-		 >> recordOfPhoneNumbers[numberOfRecords]
-		 >> recordOfBirthDates[numberOfRecords];
-
-		while (!readPhoneBook.eof())
-		{
-			readPhoneBook >> recordOfName[numberOfRecords]
-				>> recordOfPhoneNumbers[numberOfRecords]
-				>> recordOfBirthDates[numberOfRecords];
-		}
-		readPhoneBook.close();
-	}
-	else if (readPhoneBook.fail())
-	{
-		PassFailToken = -1;
-	}
-
-	return PassFailToken;
-}
-
-
-bool Tests(int & PassFailToken)
-{
-	bool valid = true;
-	if (PassFailToken > 0)
+	if (ReadDB.is_open())
 	{
 		valid = true;
+
+		ReadDB >> recordOfNames[numberOfRecords]
+			>> recordOfPhoneNumbers[numberOfRecords]
+			>> recordOfBirthDates[numberOfRecords];
+
+		while (!ReadDB.eof())
+		{
+			ReadDB >> recordOfNames[numberOfRecords]
+				>> recordOfPhoneNumbers[numberOfRecords]
+				>> recordOfBirthDates[numberOfRecords];
+
+			numberOfRecords++;
+		}
+		ReadDB.close();
 	}
-	else if (PassFailToken < 0)
+	else if (ReadDB.fail())
 	{
-		cout << "Failed";
 		valid = false;
 	}
-	else if (PassFailToken == 0)
-	{
-		cout << "An unkown fatel error hased occured...";
-		valid = false;
-	}
+
 	return valid;
+}
+
+void PostDataBase(char recordOfNames[][NAME_LENGTH], int recordOfPhoneNumbers[],
+	int recordOfBirthDates[], int & numberOfRecords)
+{
+	ofstream WriteDB(FILENAME);
+
+	if (WriteDB.is_open())
+	{
+		for (int ii = 0; ii < numberOfRecords; ii++)
+		{
+			if (ii != numberOfRecords - 1) 
+			{
+				WriteDB << recordOfNames[ii] << " "
+					<< recordOfPhoneNumbers[ii] << " "
+					<< recordOfBirthDates[ii] << endl;
+			}
+			else
+			{
+				WriteDB << recordOfNames[ii] << " "
+					<< recordOfPhoneNumbers[ii] << " "
+					<< recordOfBirthDates[ii];
+			}
+		}
+
+		WriteDB.close();
+	}
+	else if (WriteDB.fail())
+	{
+		cout << "\t\nFATEL ERROR\n DataBase failed to load.";
+	}
+
+
+}
+
+int Search(char recordOfNames[][NAME_LENGTH], int & numberOfRecords)
+{
+	char searchName[NAME_LENGTH];
+	int index = 0;
+
+	cout << "Search by Name.\n";
+	cout << "Name: ";
+	cin >> searchName;
+
+	for (int ii = 0; ii < numberOfRecords; ii++)
+	{
+		if (strcmp(searchName, recordOfNames[ii]) == 0)
+		{
+			index = ii;
+		}
+	}
+
+	return index;
+}
+
+void AddRecord(char recordOfNames[][NAME_LENGTH], int recordOfPhoneNumbers[],
+	int recordOfBirthDates[], int & numberOfRecords)
+{
+	bool valid = true;
+	int selection = 0;
+
+	for(int ii = numberOfRecords; valid || ii + numberOfRecords == 1000; ii++)
+	{
+
+		numberOfRecords++;
+		cout << "\nEnter Name: ";
+		cin.ignore();
+		cin.getline(recordOfNames[ii], NAME_LENGTH);
+
+		cout << "\nEnter Phone Number: ";
+		cin >> recordOfPhoneNumbers[ii];
+
+		cout << "\nEnter BirthDate: ";
+		cin >> recordOfBirthDates[ii];
+
+		cout << "1...............Add Another Record.\n";
+		cout << "2.............................Stop.\n";
+		cin >> selection;
+
+		if (selection != 1) valid = false;
+
+	}
+}
+
+void DisplayDB(char recordOfNames[][NAME_LENGTH], int recordOfPhoneNumbers[], 
+	int recordOfBirthDates[], int & numberOfRecords)
+{
+	for (int ii = 0; ii < numberOfRecords; ii++)
+	{
+		cout << recordOfNames[ii] << "         " << recordOfPhoneNumbers[ii] << "                    " << recordOfBirthDates[ii] << '\n';
+	}
 }
