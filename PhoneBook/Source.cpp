@@ -1,6 +1,8 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <string>
+
 
 using std::cin;
 using std::cout;
@@ -31,7 +33,12 @@ int GetDataBase(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[]
 void PostDataBase(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[], 
 	int recordOfBirthDates[], int & numberOfRecords);
 
+void BubbleSort(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[],
+	int recordOfBirthDates[], int & numberOfRecords);
+
 int Search(char recordOfNames[][NAME_LENGTH], int & numberOfRecords);
+
+int BinarySearch(char recordOfNames[][NAME_LENGTH], char target[], int & numberOfRecords);
 
 void AddRecord(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[], 
 	int recordOfBirthDates[], int & numberOfRecords);
@@ -162,12 +169,32 @@ int GetDataBase(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[]
 		valid = false;
 	}
 
+	BubbleSort(recordOfNames, recordOfPhoneNumbers, recordOfBirthDates, numberOfRecords);
+
 	return valid;
 }
 
 void PostDataBase(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[],
 	int recordOfBirthDates[], int & numberOfRecords)
 {
+	char newline = '\n';
+	char temp[NAME_LENGTH] = {"\n"};
+
+	for (int ii = 0; ii < numberOfRecords; ii++)
+	{
+		if (recordOfNames[0][0] == newline)
+		{
+			for(int jj = 0; jj < NAME_LENGTH; jj++)
+			{
+				recordOfNames[0][jj] = recordOfNames[0][jj + 1];
+			}
+		}
+		else if (recordOfNames[ii][0] != newline && ii != 0)
+		{
+			strcat(temp, recordOfNames[ii]);
+			strcpy(recordOfNames[ii], temp);
+		}
+	}
 	ofstream WriteDB(FILENAME);
 
 	if (WriteDB.is_open())
@@ -188,31 +215,63 @@ void PostDataBase(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers
 	}
 }
 
-int Search(char recordOfNames[][NAME_LENGTH], int & numberOfRecords)
+void BubbleSort(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[],
+	int recordOfBirthDates[], int & numberOfRecords)
 {
-	char searchName[NAME_LENGTH];
-	char temp[] = "\n";
-	int index = 0;
-
-	cout << "Search by Name.\n";
-	cout << "Name: ";
-	cin.getline(searchName, NAME_LENGTH);
-	cin.clear();
-
-	strcat_s(temp, searchName);
-	strcpy_s(searchName, temp);
+	bool sorted = false;
+	char * lname1;
+	char * lname2;
+	char tempstring[NAME_LENGTH]; 
+	int tempint;
+	double tempdouble;
 
 	for (int ii = 0; ii < numberOfRecords; ii++)
 	{
-		if (strcmp(searchName, recordOfNames[ii]) == 0)
+		for (int jj = 0; jj < numberOfRecords - ii - 1; jj++)
 		{
-			index = ii;
-			break;
-		}
-		else index = -1;
-	}
+			char name1[NAME_LENGTH];
+			char name2[NAME_LENGTH];
 
-	return index;
+			strcpy(name1, recordOfNames[jj]);
+			strcpy(name2, recordOfNames[jj + 1]);
+
+			lname1 = strtok(name1, "\n "); 
+			lname1 = strtok(NULL, " ");
+			lname2 = strtok(name2, "\n ");
+			lname2 = strtok(NULL, " ");
+
+			if (strcmp(lname1, lname2) > 0)
+			{
+
+				strcpy_s(tempstring, recordOfNames[jj]);
+				strcpy_s(recordOfNames[jj], recordOfNames[jj + 1]);
+				strcpy_s(recordOfNames[jj + 1], tempstring);
+
+				tempdouble = recordOfPhoneNumbers[jj];
+				recordOfPhoneNumbers[jj] = recordOfPhoneNumbers[jj + 1];
+				recordOfPhoneNumbers[jj + 1] = tempdouble;
+
+				tempint = recordOfBirthDates[jj];
+				recordOfBirthDates[jj] = recordOfBirthDates[jj + 1];
+				recordOfBirthDates[jj + 1] = tempint;
+			}
+		}
+	}
+}
+
+int Search(char recordOfNames[][NAME_LENGTH], int & numberOfRecords)
+{
+	char searchName[NAME_LENGTH];
+	//char temp[] = "\n";
+
+	cout << "Search by LastName.\n";
+	cout << "Name: ";
+	cin.ignore(cin.rdbuf()->in_avail());
+	cin.getline(searchName, NAME_LENGTH);
+	cin.clear();
+	cin.ignore(cin.rdbuf()->in_avail());
+
+	return BinarySearch(recordOfNames, searchName, numberOfRecords);
 }
 
 void AddRecord(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[],
@@ -226,8 +285,10 @@ void AddRecord(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[],
 		char temp[NAME_LENGTH] = "\n";
 		numberOfRecords++;
 		cout << "\nEnter Name: ";
+		cin.ignore(cin.rdbuf()->in_avail());
 		cin.getline(recordOfNames[ii], NAME_LENGTH);
 		cin.clear();
+		cin.ignore(cin.rdbuf()->in_avail());
 
 		strcat_s(temp, recordOfNames[ii]);
 		strcpy_s(recordOfNames[ii], temp);
@@ -245,32 +306,63 @@ void AddRecord(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[],
 		cin >> selection;
 
 		if (selection != 1) valid = false;
+
+		BubbleSort(recordOfNames, recordOfPhoneNumbers, recordOfBirthDates, numberOfRecords);
 	}
 }
 
 void EditRecord(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[],
 	int recordOfBirthDates[], int & numberOfRecords)
 {
+	int selection = 0;
+	char temp[NAME_LENGTH] = "\n";
+
 	int index = Search(recordOfNames, numberOfRecords);
 
 	if (index == -1) cout << "Record Not Found";
 
 	else
 	{
-		char temp[NAME_LENGTH] = "\n";
-		numberOfRecords++;
-		cout << "\nEnter  Your New Name: ";
-		cin.getline(recordOfNames[index], NAME_LENGTH);
+		DisplayDB(recordOfNames, recordOfPhoneNumbers, recordOfBirthDates, numberOfRecords, index);
+
+		cout << "\nWhat do you want to change?\n";
+		cout << "1.................Name.\n";
+		cout << "2.........Phone Number.\n";
+		cout << "3...........Birth Date.\n";
+		cout << "Selection: ";
+		cin >> selection;
 		cin.clear();
 
-		strcat_s(temp, recordOfNames[index]);
-		strcpy_s(recordOfNames[index], temp);
+		switch (selection)
+		{
+		case 1: 
+			cout << "\nEnter  Your New Name: ";
+			cin.ignore(cin.rdbuf()->in_avail());
+			cin.getline(recordOfNames[index], NAME_LENGTH);
+			cin.clear();
+			cin.ignore(cin.rdbuf()->in_avail());
 
-		cout << "\nEnter your new phone number: ";
-		cin >> recordOfPhoneNumbers[index];
+			strcat_s(temp, recordOfNames[index]);
+			strcpy_s(recordOfNames[index], temp);
+			break;
 
-		cout << "\nEnter your new birthdate: ";
-		cin >> recordOfBirthDates[index];
+		case 2:
+			cout << "\nEnter your new phone number: ";
+			cin >> recordOfPhoneNumbers[index];
+			break;
+
+		case 3:
+			cout << "\nEnter your new birthdate: ";
+			cin >> recordOfBirthDates[index];
+			break;
+
+		default:
+			cout << "Invalid entry...";
+			system("pause");
+			break;
+		}
+
+		BubbleSort(recordOfNames, recordOfPhoneNumbers, recordOfBirthDates, numberOfRecords);
 	}
 }
 
@@ -302,4 +394,38 @@ void DisplayDB(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[],
 	{
 		cout << "\nUnkown error\n";
 	}
+}
+
+int BinarySearch(char recordOfNames[][NAME_LENGTH], char target[], int & numberOfRecords)
+{
+	char name1[NAME_LENGTH];
+	char * lname;
+	bool found = false;
+	int start = 0;
+	int end = numberOfRecords;
+	int middle = 0;
+	int index = -1;
+
+	while (start <= end && found != true)
+	{
+		middle = (start + end) / 2;
+		strcpy(name1, recordOfNames[middle]);
+		lname = strtok(name1, " ");
+		lname = strtok(NULL, " ");
+
+		if (strcmp(target, lname) == 0)
+		{
+			found = true;
+		}
+		else if (strcmp(target, lname) > 0)
+		{
+			start = middle + 1;
+		}
+		else
+			end = middle - 1;
+	}
+
+	if (found) index = middle;
+
+	return index;
 }
