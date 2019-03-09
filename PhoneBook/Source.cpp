@@ -52,6 +52,8 @@ void DisplayDB(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[],
 void DisplayDB(char recordOfNames[][NAME_LENGTH], double recordOfPhoneNumbers[],
 	int recordOfBirthDates[], int & numberOfRecords, int index);
 
+void KnownBugs();
+
 //Functions
 int main()
 {
@@ -92,12 +94,13 @@ void DisplayMenu(int& menuSelection)
 		cout << "3......................................................Edit Record.\n";
 		cout << "4............................................Display Entire Record.\n";
 		cout << "5..................................................Exit Phone Book.\n";
+		cout << "6.......................................................Known Bugs.\n";
 		cout << "\nPlease enter your selection: ";
 		cin >> menuSelection;
 		cin.clear();
 		cin.ignore();
 
-		if (menuSelection > 5 || menuSelection < 1)
+		if (menuSelection > 6 || menuSelection < 1)
 		{
 			cout << "\n" << menuSelection << " is an invalid option.\n";
 			valid = true;
@@ -132,6 +135,10 @@ void ProcessMenu(int& menuSelection, bool & valid, char recordOfNames[][NAME_LEN
 		break;
 	case 5:
 		valid = false;
+		break;
+	case 6:
+		KnownBugs();
+		system("pause");
 		break;
 	default:
 		cout << "\nUnkown Error has occured.\n";
@@ -428,4 +435,12 @@ int BinarySearch(char recordOfNames[][NAME_LENGTH], char target[], int & numberO
 	if (found) index = middle;
 
 	return index;
+}
+
+void KnownBugs()
+{
+	cout << "Here is a list know bugs in the app that could fately crash the program,\nplease avoid these errors, we are working to repait them.\n";
+	cout << "\nWhen adding or editing a record, not entering a last name or seperating first and last name by a space\n\twill crash the program.\n";
+	cout << "\nWhen adding or editing a record, entering anything but numbers for the phone number, or birth date\n\twill crash the program.\n";
+
 }
